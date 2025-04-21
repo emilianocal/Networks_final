@@ -1,0 +1,6 @@
+# prop_name, value
+name,livejournal
+description,"The LiveJournal online social network of relationships among its nearly 10 million members in 2006. LJ members may maintain journals, individual and group blogs, and members may declare which other members are their friends."
+citation,"['L. Backstrom, D. Huttenlocher, J. Kleinberg, and X. Lan. \"Group Formation in Large Social Networks: Membership, Growth, and Evolution.\" Proc. Internat. Conf. on Knowledge Discovery and Data Mining (KDD), 44-54 (2006)., http://snap.stanford.edu/data/soc-LiveJournal1.html']"
+url,http://snap.stanford.edu/data/soc-LiveJournal1.html
+tags,"['Social', 'Online', 'Unweighted']"
