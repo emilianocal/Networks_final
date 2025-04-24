@@ -685,11 +685,9 @@ edge_weights <- unlist(lapply(omit_zeros_list[1:187], interaction_to_weight))
 
 E(Colony5CirclePre)$weight <- edge_weights
 
-plot(Colony5CirclePre)
-heatmap(Colony5CirclePreMatrix)
-
-
-plot(Colony5CirclePre)
+# plot(Colony5CirclePre)
+# heatmap(Colony5CirclePreMatrix)
+# plot(Colony5CirclePre)
 
 colony5circlebaseline_igraph <- graph_from_adjacency_matrix(
   Colony5CirclePreMatrix,
@@ -697,14 +695,9 @@ colony5circlebaseline_igraph <- graph_from_adjacency_matrix(
   diag = TRUE,
 )
 
-plot(colony5circlebaseline_igraph)
+# plot(colony5circlebaseline_igraph)
 
 # BASELINE MEASURES
-
-
-
-
-
 
 
 Col5circlebaselinebetweenness <- betweenness(colony5circlebaseline_igraph)
@@ -757,7 +750,7 @@ fncloseness <- closeness(simple_colony5circleinvader_igraph)
 
 fncloseness_scaled <- fncloseness / max(fncloseness)
 
-color_palette <- rev(rocket(100))  # From 'scico' or 'viridisLite'
+color_palette <- rev(rocket(100))
 
 fn_node_colors <- color_palette[as.numeric(cut(fncloseness_scaled, breaks=100))]
 
@@ -787,17 +780,91 @@ plot(simple_colony5circleinvader_igraph
 
 
 ## ----------------
+# Focal BASELINE CIRCLE NETWORK MEASURES ----------------
+
+fncirclebg <- colony5circlebaseline_igraph
+
+# DEGREE
+fncb_deg <- igraph::degree(fncirclebg, mode = "in")
+fncb_avg_deg <- mean(fncb_deg)
+cat("Average total degree of the network:", fncb_avg_deg, "\n")
+
+# CLOSENESS
+fncb_closeness <- igraph::closeness(fncirclebg)
+fncb_avg_closeness <- mean(fncb_closeness)
+cat("Average Closeness of this network:", fncb_avg_closeness, "\n")
+
+# BETWEENNESS
+fncb_betweenness <- igraph::betweenness(fncirclebg, directed = TRUE)
+fncb_avg_betweenness <- mean(fncb_betweenness)
+cat("Average Betweenness of this network:", fncb_avg_betweenness, "\n")
+
+# CLUSTERING COEFFICIENT
+fncb_cc <- transitivity(fncirclebg, type = "global")
+cat("Clustering coefficient of this network:", fncb_cc, "\n")
+
+# Compared to a random network
+randomfncb_cc1a <- sample_gnm(vcount(fncirclebg), ecount(fncirclebg)  
+                            , directed = TRUE, loops = FALSE)
+random_fncb_cc1 <- transitivity(randomfncb_cc1a, type = "global")
+cat("Clustering coefficient of a RANDOM network:", random_fncb_cc1, "\n")
+
+# randomlj_cc2a <- sample_gnm(vcount(simpleljg), ecount(simpleljg)  
+#                            , directed = TRUE, loops = FALSE)
+
+
+# MOTIFS
+
+fncb_mot <- motifs(fncirclebg, size = 3)
+sum(fncb_mot, na.rm = TRUE)
+fncb_mot[is.na(fncb_mot)] <- 0
+
+par(mar=c(0,1,0,1), oma = c(1,2,1,1), xpd=TRUE)# bottom, left, top, right
+# layout(matrix(c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17, 0)
+#              , nrow = 2, ncol = 18, byrow = T)
+#              , heights=c(3,1)) 
+layout(matrix(1:8, nrow = 2, byrow = TRUE))
+fncbcolor_distributions <- "#edd654"
+barplot(fncb_mot
+        , col = fncbcolor_distributions
+        , names.arg = fncb_mot) 
+
+ par(mar=c(0,0.5,0,0))
+for (i in 0:3) {
+  # This command gives the graph number i that is possible with
+  # 3 nodes. 
+  fncb_motif_graph <- graph_from_isomorphism_class(3, i, directed = FALSE)
+  # Now plotting that:
+  plot(fncb_motif_graph
+       , edge.arrow.size = 0.5
+       , edge.color = alpha("grey27", 0.5)
+       , edge.width = 2
+       , vertex.label.color = fncbcolor_distributions
+       , vertex.label.cex = 1
+  )
+}
+
+par(mfrow = c(1,1))
+
+# ASSORTATIVITY
+fncb_assortativity <- assortativity(fncirclebg, values = fncb_deg, directed = TRUE)
+cat("Assortativity of this network:", fncb_assortativity, "\n")
+
+random_fncb_deg1 <- igraph::degree(randomfncb_cc1a, mode = "in")
+random_fncb_assortativity <- assortativity(randomfncb_cc1a, values = random_lj_deg1, directed = TRUE)
+cat("Assortativity of a RANDOM network:", random_fncb_assortativity, "\n")
+
+
+# MODULARITY
+communities_fncb <- cluster_edge_betweenness(fncirclebg)
+fncb_modularity <- modularity(communities_fncb)
+cat("Modularity of this network:", fncb_modularity, "\n")
+
+# DIAMETER
+fncb_diameter <- diameter(fncirclebg, directed = TRUE)
+cat("Diameter of this network:", fncb_diameter, "\n")
+
+
+
 # END ---------
-
-
-
-
-
-
-
-
-
-
-
-
 
