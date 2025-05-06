@@ -1,19 +1,13 @@
-# HEADER -------------------------
-## R script for ECOL596G 
-## Complex Systems & Networks
-## SPRING 2025
-## written by Emiliano Calvo Alcaniz
+# R script for ECOL596G 
+# Complex Systems & Networks - SPRING 2025
+# written by Emiliano Calvo Alcaniz
 
-
-## ----------------
-## SETTING YOUR WORKING DIRECTORY  --------------
+## SET YOUR WORKING DIRECTORY:
 setwd("C:/Desktop/Networks_final")
-# Can set this to wherever the folder is
-
-
+# Set this to wherever you put this folder
 
 ## ----------------
-# Installing packages ---------------------
+# Installing packages (*Make sure you already set your working directory*) ---------------------
 install.packages("sna")
 install.packages("intergraph")
 install.packages("igraph")
@@ -22,6 +16,7 @@ install.packages("scales")
 install.packages("bipartite")
 install.packages("networkD3")
 install.packages("circlize")
+install.packages("snowboot")
 
 
 ## ----------------
@@ -34,6 +29,7 @@ library(scales)
 library(bipartite)  
 library(networkD3) 
 library(circlize)
+library(snowboot)
 
 ## ----------------
 # CAVIAR dataset & calculations -----------------
@@ -105,8 +101,11 @@ title(main = paste("\n                       ", "\n",
 
 ## ----------------
 #### CAVIAR NETWORK MEASURES  ------------
-## DEGREE
+## YOU CAN JUST RUN THIS ENTIRE SECTION AND THE CONSOLE 
+## WILL PRINT OUT ALL THE MEASURES (SO LONG AS YOU HAVE 
+## ALREADY LOADED IN THE MATRICES)
 
+# DEGREE
 # Calculate degree (redundant, since it was calculated earlier for a plot)
 caviar_deg <- igraph::degree(simplecaviar_igraph, mode = "in")
 # Make it numeric so it can be used to calculate the mean
@@ -396,6 +395,9 @@ chordDiagram(lj_am_shrunk
 
 ## ----------------
 #### LJ  NETWORK MEASURES   -------------------------
+## YOU CAN JUST RUN THIS ENTIRE SECTION AND THE CONSOLE 
+## WILL PRINT OUT ALL THE MEASURES (SO LONG AS YOU HAVE 
+## ALREADY LOADED IN THE MATRICES)
 
 # DEGREE
 lj_deg <- igraph::degree(simpleljg, mode = "in")
@@ -445,10 +447,8 @@ for (i in 0:15) {
   # Now plotting that:
   plot(lj_motif_graph
        , edge.arrow.size = 0.5
-       #, edge.arrow.width = 1
        , edge.color = alpha("grey27", 0.5)
        , edge.width = 2
-       , vertex.label.family = "Arial"
        , vertex.label.color = ljcolor_distributions
        , vertex.label.cex = 1
   )
@@ -481,30 +481,74 @@ cat("Diameter of this network:", lj_diameter, "\n")
 ## ----------------
 # Drosophila dataset & calculations --------------
 
+# Load in the csv file
 dedges <- read.csv("drosophila_edgelist_shrunk.csv", header = TRUE)
+# Turn it into a matrix
 dedgem <- as.matrix(dedges)
+# Turns the node numbers into characters so it doesn't bug out when i make it a graph
 dedgem <- apply(dedgem, 2, as.character)
+# turn the edgelist into a graph
 dg <- graph_from_edgelist(dedgem)
-
+# turn the graph into an adjacency matrix
 dam <- as_adjacency_matrix(graph_from_edgelist(dedgem))
-dg <- graph_from_adjacency_matrix(dam)
+# I was just testing it here to make sure it would still work
+dg <- graph_from_adjacency_matrix(dam, mode = "directed")
 
-# print(dam)
-# View(dam)
+# View(as.matrix(dam))
 
-# plot(dg, vertex.label = NA)
-
-# Aesthetics
+# Aesthetics, this just makes the text italicized. I took it from a 
+# stack overflow thing so I'm unclear on what I can remove without breaking it
 italics <- lapply(rownames(data), function(x) bquote(italic(.(x))))
-main = expression('Super heatmap showing upregulation of gene'~italic(SUPERGENENAME)~'')
-plot(as.network(dedges)
+dr_color <- turbo(12)
+dr_deg <- igraph::degree(dg, mode = "all")
+dr_palette <- dr_color[dr_deg]
+
+# PLOTTING 
+
+dr_plot <- plot(intergraph::asNetwork(dg)
+     , vertex.col = dr_palette
      , main = expression('Network of '~italic(Drosophila)~' Neurons')
-     , cex.main = 2
-     )
+     , cex.main = 2)
 
-# plot(dedgem, col="blue4", lwd = 2, pch = 21, xlab = "Starting neuron", ylab = "Ending neuron")
-# heatmap(dedgematrix)
+legend_values <- sort(unique(dr_deg))
+legend_colors <- dr_color[legend_values]
 
+legend("right",
+       legend = legend_values,
+       col = legend_colors,
+       pch = 19,
+       pt.cex = 2,
+       title = "Degree",
+       bty = "n")
+
+
+# RANDOM PLOT
+random_dr <- sample_gnm(vcount(dg), ecount(dg)  
+                            , directed = TRUE, loops = FALSE)
+dr_random_deg <- igraph::degree(random_dr, mode = "all")
+dr_random_max <- max(dr_random_deg)
+dr_random_color <- turbo(7)
+dr_random_palette <- dr_random_color[dr_random_deg]
+
+dr_random_plot <- plot(intergraph::asNetwork(random_dr)
+                , vertex.col = dr_random_palette
+                , main = expression('Random Network of '~italic(Drosophila)~' Neurons')
+                , cex.main = 2)
+
+legend_random_values <- sort(unique(dr_deg))
+legend_random_colors <- dr_random_color[legend_random_values]
+
+legend("right",
+       legend = legend_random_values,
+       col = legend_colors,
+       pch = 19,
+       pt.cex = 2,
+       title = "Degree",
+       bty = "n")
+
+
+
+# get like a million warnings for dumb stuff so this clears it
 warnings()
 
 ## ----------------
@@ -542,7 +586,10 @@ plot(drosophilax, drosophilay
 
 ## ----------------
 #### DROSOPHILA NETWORK MEASURES -----------------
- 
+## YOU CAN JUST RUN THIS ENTIRE SECTION AND THE CONSOLE 
+## WILL PRINT OUT ALL THE MEASURES (SO LONG AS YOU HAVE 
+## ALREADY LOADED IN THE MATRICES)
+
  # DEGREE
  dr_deg <- igraph::degree(dg, mode = "in")
  dr_avg_deg <- mean(dr_deg)
@@ -624,7 +671,6 @@ dr_diameter <- diameter(dg, directed = TRUE)
 
 ## ----------------
 # FOCUS NETWORK -- WORKER INTERACTIONS dataset & calculations ------------------
-
 ## ----------------
 # RAW DATA (JUST FOR ME - THE ENTIRE SECTION IS COMMENTS) -----
 #Colony5CircleAggnT  <- read.csv("https://data.cyverse.org/dav-anon/iplant/home/gchism/NestArchAggn/Raw_Data/tracking_raw/Colony5_Circle_Aggn.csv")
@@ -643,7 +689,7 @@ dr_diameter <- diameter(dg, directed = TRUE)
 #                                               "SizeWidth.px", "SizeLeng.px", "Speed.Px.s", "Interpolated", "HeadX", "HeadY"))
 
 ## ----------------
-# DERIVED DATA ------
+# DERIVED DATA -- Importing ------------------
 
 # INVADER Tube
 Colony5TubeAggnNRMatrix <- read.csv("https://data.cyverse.org/dav-anon/iplant/home/gchism/NestArchAggn/Derived_Data/Matrices/Colony5TubeAggnNRMatrix.csv", row.names = 1, header = TRUE)
@@ -651,18 +697,39 @@ Colony5TubeAggnRMatrix <- read.csv("https://data.cyverse.org/dav-anon/iplant/hom
 # Matrix addition of the two matrices
 Colony5TubeAggnMatrix <- as.matrix(Colony5TubeAggnNRMatrix + Colony5TubeAggnRMatrix)
 
+colony5tubeaggn_igraph <- graph_from_adjacency_matrix(
+  Colony5TubeAggnMatrix,
+  mode = "directed",
+  diag = TRUE,
+)
+colony5tubeaggnconnected_igraph <- delete_vertices(colony5tubeaggn_igraph, "id_359")
+
 # INVADER Circle 
 Colony5CircleAggnNRMatrix <- read.csv("https://data.cyverse.org/dav-anon/iplant/home/gchism/NestArchAggn/Derived_Data/Matrices/Colony5CircleAggnNRMatrix.csv", row.names = 1, header = TRUE) 
 Colony5CircleAggnRMatrix <- read.csv("https://data.cyverse.org/dav-anon/iplant/home/gchism/NestArchAggn/Derived_Data/Matrices/Colony5CircleAggnRMatrix.csv", row.names = 1, header = TRUE) 
 # Matrix addition of the two matrices
 Colony5CircleAggnMatrix <- as.matrix(Colony5CircleAggnNRMatrix + Colony5CircleAggnRMatrix)
 
+colony5circleaggn_igraph <- graph_from_adjacency_matrix(
+  Colony5CircleAggnMatrix,
+  mode = "directed",
+  diag = TRUE,
+)
+
+
 # BASELINE Tube
 Colony5TubePreNRMatrix <- read.csv("https://data.cyverse.org/dav-anon/iplant/home/gchism/NestArchAggn/Derived_Data/Matrices/Colony5TubePreNRMatrix.csv", row.names = 1, header = TRUE) 
 Colony5TubePreRMatrix <- read.csv("https://data.cyverse.org/dav-anon/iplant/home/gchism/NestArchAggn/Derived_Data/Matrices/Colony5TubePreRMatrix.csv", row.names = 1, header = TRUE) 
+
 # Matrix addition of the two matrices
 Colony5TubePreMatrix <- as.matrix(Colony5TubePreNRMatrix + Colony5TubePreRMatrix)
 
+
+colony5tubebaseline_igraph <- graph_from_adjacency_matrix(
+  Colony5TubePreMatrix,
+  mode = "directed",
+  diag = TRUE,
+)
 
 
 # BASELINE Circle
@@ -671,118 +738,21 @@ Colony5CirclePreRMatrix <- read.csv("https://data.cyverse.org/dav-anon/iplant/ho
 # Matrix addition of the two matrices
 Colony5CirclePreMatrix <- as.matrix(Colony5CirclePreNRMatrix + Colony5CirclePreRMatrix)
 
-## ----------------
-# Focal Network Plotting, etc ---------------
-# COLONY 5 CIRCLE BASELINE
-
-Colony5CirclePreMatrix[Colony5CirclePreMatrix>0] <- 1 
-Colony5CirclePre <- graph_from_adjacency_matrix(Colony5CirclePreMatrix, mode = "undirected") 
-col5circlepre_list <- as.list(Colony5CirclePreMatrix)
-omit_zeros_list <- col5circlepre_list[col5circlepre_list != 0]
-interaction_to_weight <- function(x) {
-  return(8991 / x)}
-edge_weights <- unlist(lapply(omit_zeros_list[1:187], interaction_to_weight))
-
-E(Colony5CirclePre)$weight <- edge_weights
-
-# plot(Colony5CirclePre)
-# heatmap(Colony5CirclePreMatrix)
-# plot(Colony5CirclePre)
-
 colony5circlebaseline_igraph <- graph_from_adjacency_matrix(
   Colony5CirclePreMatrix,
-  mode = "undirected",
+  mode = "directed",
   diag = TRUE,
 )
-
-# plot(colony5circlebaseline_igraph)
-
-# BASELINE MEASURES
-
-
-Col5circlebaselinebetweenness <- betweenness(colony5circlebaseline_igraph)
-
-Col5circlebaseline_betweenness <- plot(Col5circlebaselinebetweenness, col="blue4", bg="green4", 
-                               lwd = 2, pch = 21, main = "Colony 5 Baseline Betweenness", xlab = "Individual", ylab = "Betweenness")
-
-
-Col5circlebaselinecloseness <- closeness(colony5circlebaseline_igraph)
-
-Col5circlebaseline_closeness <- plot(Col5circlebaselinecloseness, col="blue4", bg="green4", 
-                                       lwd = 2, pch = 21, main = "Colony 5 Baseline Closeness", xlab = "Individual", ylab = "Closeness")
-
-
-# INVADER CIRCLE
-
-plot(as.matrix(Colony5CircleAggnMatrix))
-plot(as.network(Colony5CircleAggnMatrix))
-
-colony5circleinvader_igraph <- graph_from_adjacency_matrix(
-  Colony5CircleAggnMatrix,
-  mode = "undirected",
-  diag = TRUE,
-)
-
-
-Col5circleinvaderbetweenness <- betweenness(colony5circleinvader_igraph)
-
-Col5circleinvader_betweenness <- plot(Col5circleinvaderbetweenness, col="blue4", bg="green4", 
-                                       lwd = 2, pch = 21, main = "Colony 5 Invader Betweenness", xlab = "Individual", ylab = "Betweenness")
-
-
-Col5circleinvadercloseness <- closeness(colony5circleinvader_igraph)
-
-Col5circleinvader_closeness <- plot(Col5circleinvadercloseness, col="blue4", bg="green4", 
-                                     lwd = 2, pch = 21, main = "Colony 5 Invader Closeness", xlab = "Individual", ylab = "Closeness")
-
-
-
-
-Colony5CircleAggnMatrix
-
-
-
-
-
-simple_colony5circleinvader_igraph <- simplify(colony5circleinvader_igraph)
-
-fncloseness <- closeness(simple_colony5circleinvader_igraph)
-
-fncloseness_scaled <- fncloseness / max(fncloseness)
-
-color_palette <- rev(rocket(100))
-
-fn_node_colors <- color_palette[as.numeric(cut(fncloseness_scaled, breaks=100))]
-
-
-plot(simple_colony5circleinvader_igraph 
-     ,     vertex.label = NA
-     ,     vertex.color = fn_node_colors
-#     ,     edge.weight = E(caviar_igraph)$X
-     ,     edge.arrow.size = 0.5
-     ,     main = paste("\nColony 5 Circular Invader Assay","  ",
-                        "\n Colored by Closeness")
-     ,     cex = 4
-)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ## ----------------
-# Focal BASELINE CIRCLE NETWORK MEASURES ----------------
+# Focal NETWORK MEASURES ----------------
+## YOU CAN JUST RUN THIS ENTIRE SECTION AND THE CONSOLE 
+## WILL PRINT OUT ALL THE MEASURES (SO LONG AS YOU HAVE 
+## ALREADY LOADED IN THE MATRICES)
 
-fncirclebg <- colony5circlebaseline_igraph
+## CIRCLE BASELINE
+fncirclebg <- simplify(colony5circlebaseline_igraph)
 
 # DEGREE
 fncb_deg <- igraph::degree(fncirclebg, mode = "in")
@@ -803,57 +773,9 @@ cat("Average Betweenness of this network:", fncb_avg_betweenness, "\n")
 fncb_cc <- transitivity(fncirclebg, type = "global")
 cat("Clustering coefficient of this network:", fncb_cc, "\n")
 
-# Compared to a random network
-randomfncb_cc1a <- sample_gnm(vcount(fncirclebg), ecount(fncirclebg)  
-                            , directed = TRUE, loops = FALSE)
-random_fncb_cc1 <- transitivity(randomfncb_cc1a, type = "global")
-cat("Clustering coefficient of a RANDOM network:", random_fncb_cc1, "\n")
-
-# randomlj_cc2a <- sample_gnm(vcount(simpleljg), ecount(simpleljg)  
-#                            , directed = TRUE, loops = FALSE)
-
-
-# MOTIFS
-
-fncb_mot <- motifs(fncirclebg, size = 3)
-sum(fncb_mot, na.rm = TRUE)
-fncb_mot[is.na(fncb_mot)] <- 0
-
-par(mar=c(0,1,0,1), oma = c(1,2,1,1), xpd=TRUE)# bottom, left, top, right
-# layout(matrix(c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17, 0)
-#              , nrow = 2, ncol = 18, byrow = T)
-#              , heights=c(3,1)) 
-layout(matrix(1:8, nrow = 2, byrow = TRUE))
-fncbcolor_distributions <- "#edd654"
-barplot(fncb_mot
-        , col = fncbcolor_distributions
-        , names.arg = fncb_mot) 
-
- par(mar=c(0,0.5,0,0))
-for (i in 0:3) {
-  # This command gives the graph number i that is possible with
-  # 3 nodes. 
-  fncb_motif_graph <- graph_from_isomorphism_class(3, i, directed = FALSE)
-  # Now plotting that:
-  plot(fncb_motif_graph
-       , edge.arrow.size = 0.5
-       , edge.color = alpha("grey27", 0.5)
-       , edge.width = 2
-       , vertex.label.color = fncbcolor_distributions
-       , vertex.label.cex = 1
-  )
-}
-
-par(mfrow = c(1,1))
-
 # ASSORTATIVITY
 fncb_assortativity <- assortativity(fncirclebg, values = fncb_deg, directed = TRUE)
 cat("Assortativity of this network:", fncb_assortativity, "\n")
-
-random_fncb_deg1 <- igraph::degree(randomfncb_cc1a, mode = "in")
-random_fncb_assortativity <- assortativity(randomfncb_cc1a, values = random_lj_deg1, directed = TRUE)
-cat("Assortativity of a RANDOM network:", random_fncb_assortativity, "\n")
-
 
 # MODULARITY
 communities_fncb <- cluster_edge_betweenness(fncirclebg)
@@ -863,6 +785,338 @@ cat("Modularity of this network:", fncb_modularity, "\n")
 # DIAMETER
 fncb_diameter <- diameter(fncirclebg, directed = TRUE)
 cat("Diameter of this network:", fncb_diameter, "\n")
+
+
+
+## CIRCLE INVADER
+
+fncircleag <- simplify(colony5circleaggn_igraph)
+
+# DEGREE
+fnca_deg <- igraph::degree(fncircleag, mode = "in")
+fnca_avg_deg <- mean(fnca_deg)
+cat("Average total degree of the network:", fnca_avg_deg, "\n")
+
+# CLOSENESS
+fnca_closeness <- igraph::closeness(fncircleag)
+fnca_avg_closeness <- mean(fnca_closeness)
+cat("Average Closeness of this network:", fnca_avg_closeness, "\n")
+
+# BETWEENNESS
+fnca_betweenness <- igraph::betweenness(fncircleag, directed = TRUE)
+fnca_avg_betweenness <- mean(fnca_betweenness)
+cat("Average Betweenness of this network:", fnca_avg_betweenness, "\n")
+
+# CLUSTERING COEFFICIENT
+fnca_cc <- transitivity(fncircleag, type = "global")
+cat("Clustering coefficient of this network:", fnca_cc, "\n")
+
+
+# ASSORTATIVITY
+fnca_assortativity <- assortativity(fncircleag, values = fnca_deg, directed = TRUE)
+cat("Assortativity of this network:", fnca_assortativity, "\n")
+
+# MODULARITY
+communities_fnca <- cluster_edge_betweenness(fncircleag)
+fnca_modularity <- modularity(communities_fnca)
+cat("Modularity of this network:", fnca_modularity, "\n")
+
+# DIAMETER
+fnca_diameter <- diameter(fncircleag, directed = TRUE)
+cat("Diameter of this network:", fnca_diameter, "\n")
+
+
+
+## TUBE BASELINE
+
+fntubeb <- simplify(colony5tubebaseline_igraph)
+
+# DEGREE
+fntb_deg <- igraph::degree(fntubeb, mode = "in")
+fntb_avg_deg <- mean(fntb_deg)
+cat("Average total degree of the network:", fntb_avg_deg, "\n")
+
+# CLOSENESS
+fntb_closeness <- igraph::closeness(fntubeb)
+fntb_avg_closeness <- mean(fntb_closeness)
+cat("Average Closeness of this network:", fntb_avg_closeness, "\n")
+
+# BETWEENNESS
+fntb_betweenness <- igraph::betweenness(fntubeb, directed = TRUE)
+fntb_avg_betweenness <- mean(fntb_betweenness)
+cat("Average Betweenness of this network:", fntb_avg_betweenness, "\n")
+
+# CLUSTERING COEFFICIENT
+fntb_cc <- transitivity(fntubeb, type = "global")
+cat("Clustering coefficient of this network:", fntb_cc, "\n")
+
+
+# ASSORTATIVITY
+fntb_assortativity <- assortativity(fntubeb, values = fntb_deg, directed = TRUE)
+cat("Assortativity of this network:", fntb_assortativity, "\n")
+
+# MODULARITY
+communities_fntb <- cluster_edge_betweenness(fntubeb)
+fntb_modularity <- modularity(communities_fntb)
+cat("Modularity of this network:", fntb_modularity, "\n")
+
+# DIAMETER
+fntb_diameter <- diameter(fntubeb, directed = TRUE)
+cat("Diameter of this network:", fntb_diameter, "\n")
+
+
+
+## TUBE INVADER
+
+fnta <- simplify(colony5tubeaggn_igraph)
+
+# DEGREE
+fnta_deg <- igraph::degree(fnta, mode = "in")
+fnta_avg_deg <- mean(fnta_deg)
+cat("Average total degree of the network:", fnta_avg_deg, "\n")
+
+# CLOSENESS
+fnta_closeness <- igraph::closeness(colony5tubeaggnconnected_igraph)
+fnta_avg_closeness <- mean(fnta_closeness)
+cat("Average Closeness of this network:", fnta_avg_closeness, "\n")
+
+# BETWEENNESS
+fnta_betweenness <- igraph::betweenness(fnta, directed = TRUE)
+fnta_avg_betweenness <- mean(fnta_betweenness)
+cat("Average Betweenness of this network:", fnta_avg_betweenness, "\n")
+
+# CLUSTERING COEFFICIENT
+fnta_cc <- transitivity(fnta, type = "global")
+cat("Clustering coefficient of this network:", fnta_cc, "\n")
+
+# ASSORTATIVITY
+fnta_assortativity <- assortativity(fnta, values = fnta_deg, directed = TRUE)
+cat("Assortativity of this network:", fnta_assortativity, "\n")
+
+# MODULARITY
+communities_fnta <- cluster_edge_betweenness(fnta)
+fnta_modularity <- modularity(communities_fnta)
+cat("Modularity of this network:", fnta_modularity, "\n")
+
+# DIAMETER
+fnta_diameter <- diameter(fnta, directed = TRUE)
+cat("Diameter of this network:", fnta_diameter, "\n")
+
+
+
+
+## ----------------
+# Various t-tests ----------------
+
+## BASELINES
+#DEGREE
+t.test(fncb_deg, fntb_deg)
+#CLOSENESS
+t.test(fncb_closeness,fntb_closeness)
+#BETWEENNESS
+t.test(fncb_betweenness, fntb_betweenness)
+
+## INVADER ASSAYS
+#DEGREE
+t.test(fnca_deg, fnta_deg)
+#CLOSENESS
+t.test(fnca_closeness,fnta_closeness)
+#BETWEENNESS
+t.test(fnca_betweenness, fnta_betweenness)
+
+
+
+## ----------------
+# Robustness curve Circle ----------------
+par(mfrow = c(1, 2))
+
+fncirclebg_start <- simplify(colony5circlebaseline_igraph)
+red_net_circle <- fncirclebg_start
+eff_circle <- vector(mode = "numeric", length = vcount(fncirclebg_start))
+shortest_dist_circle <- vector(mode = "numeric", length = vcount(fncirclebg_start))
+comp_size_circle <- vector(mode = "numeric", length = vcount(fncirclebg_start))
+
+for(i in 1:(vcount(red_net_circle)-1)) {
+  eff_circle[i] <- global_efficiency(red_net_circle)
+  shortest_dist_circle[i] <- mean_distance(red_net_circle)
+  comp_size_circle[i] <- max(components(red_net_circle)$csize)
+  vertex_deleted <- sample(V(red_net_circle), 1)
+  if (vertex_deleted==13) (circle_node <- i)
+  red_net_circle <- delete_vertices(red_net_circle, v = vertex_deleted)
+}
+
+## We've collected the data we want - note the above may take a while for a
+## big network, and you may want to just calculate one measure to being with
+## in that case.
+## Now we plot the robustness curves:
+cols <- cividis(3)
+plot((shortest_dist_circle/max(shortest_dist_circle, na.rm=T))
+     , main = "Robustness Curves of Baseline Circular Nest"
+     , xlab = "Number of nodes removed +1"
+     , ylab = "Measure"
+     , ylim = c(0, 1)
+     , pch = 19
+     , col = cols[1]
+)
+
+points((eff_circle/max(eff_circle, na.rm = T))
+       , pch = 19
+       , col = cols[2]
+)
+points((comp_size_circle/max(comp_size_circle, na.rm = T))
+       , pch = 19
+       , col = cols[3]
+)
+legend("bottomleft"
+       , legend = c("Shortest distance", "Efficiency", 
+                     "Largest component")
+       , col = cols, pch = 19
+)
+
+# Robustness curve Tube ----------------
+
+fntubebg_start <- simplify(colony5tubebaseline_igraph)
+red_net_tube <- fntubebg_start
+eff_tube <- vector(mode = "numeric", length = vcount(fntubebg_start))
+shortest_dist_tube <- vector(mode = "numeric", length = vcount(fntubebg_start))
+comp_size_tube <- vector(mode = "numeric", length = vcount(fntubebg_start))
+
+for(i in 1:(vcount(red_net_tube)-1)) {
+  eff_tube[i] <- global_efficiency(red_net_tube)
+  shortest_dist_tube[i] <- mean_distance(red_net_tube)
+  comp_size_tube[i] <- max(components(red_net_tube)$csize)
+  vertex_deleted <- sample(V(red_net_tube), 1)
+  if (vertex_deleted==13) (tube_node <- i)
+  red_net_tube <- delete_vertices(red_net_tube, v = vertex_deleted)
+}
+
+## We've collected the data we want - note the above may take a while for a
+## big network, and you may want to just calculate one measure to being with
+## in that case.
+## Now we plot the robustness curves:
+cols <- cividis(3)
+tube_robustness_plot <- plot((shortest_dist_tube/max(shortest_dist_tube, na.rm=T))
+     , main = "Robustness Curves of Baseline Tube Nest"
+     , xlab = "Number of nodes removed +1"
+     , ylab = "Measure"
+     , ylim = c(0, 1)
+     , pch = 19
+     , col = cols[1]
+)
+
+points((eff_tube/max(eff_tube, na.rm = T))
+       , pch = 19
+       , col = cols[2]
+)
+points((comp_size_tube/max(comp_size_tube, na.rm = T))
+       , pch = 19
+       , col = cols[3]
+)
+legend("bottomleft"
+       , legend = c("Shortest distance", "Efficiency", 
+                    "Largest component")
+       , col = cols, pch = 19
+)
+
+
+
+## ----------------
+# Focal Network Plotting, etc ---------------
+par(mfrow = c(1,1))
+
+# Aesthetics
+fn_color <- cividis(100)
+par(mfrow = c(2, 2))
+
+## SETUP
+# CIRCLE BASELINE
+fncb_closeness <- igraph::closeness(fncirclebg)
+# Flatten and convert to numeric (cause it can't be used to plot color otherwise)
+cbc_numeric <- as.numeric(unlist(fncb_closeness))  
+# scaling the degree in order to color nodes
+cbc_max <- max(cbc_numeric)
+cbc_scaled_calculations <- cbc_numeric/cbc_max
+cbc_scaled <- as.numeric(ceiling(cbc_scaled_calculations * 100))
+cbc_colorscale <- fn_color[cbc_scaled]
+
+# CIRCLE INVADER
+fnca_closeness <- igraph::closeness(colony5circleaggn_igraph)
+# Flatten and convert to numeric (cause it can't be used to plot color otherwise)
+cac_numeric <- as.numeric(unlist(fnca_closeness))  
+# scaling the degree in order to color nodes
+cac_max <- max(cac_numeric)
+cac_scaled_calculations <- cac_numeric/cac_max
+cac_scaled <- as.numeric(ceiling(cac_scaled_calculations * 100))
+cac_colorscale <- fn_color[cac_scaled]
+
+# TUBE BASELINE
+fntb_closeness <- igraph::closeness(colony5tubebaseline_igraph)
+# Flatten and convert to numeric (cause it can't be used to plot color otherwise)
+tbc_numeric <- as.numeric(unlist(fntb_closeness))  
+# scaling the degree in order to color nodes
+tbc_max <- max(tbc_numeric)
+tbc_scaled_calculations <- tbc_numeric/tbc_max
+tbc_scaled <- as.numeric(ceiling(tbc_scaled_calculations * 100))
+tbc_colorscale <- fn_color[tbc_scaled]
+
+# TUBE INVADER
+fnta_closeness <- igraph::closeness(colony5tubeaggnconnected_igraph)
+# Flatten and convert to numeric (cause it can't be used to plot color otherwise)
+tac_numeric <- as.numeric(unlist(fnta_closeness))  
+# scaling the degree in order to color nodes
+tac_max <- max(tac_numeric)
+tac_scaled_calculations <- tac_numeric/tac_max
+tac_scaled <- as.numeric(ceiling(tac_scaled_calculations * 100))
+tac_colorscale <- fn_color[tac_scaled]
+
+
+# Plotting
+# Circle Baseline Plot
+par(mar=c(.5, 0.2, 2, 0.2), mfrow=c(2,2))
+
+plot(simplify(colony5circlebaseline_igraph)
+     , main = "(a) Circle Baseline Assay"
+     , rescale = TRUE
+     , vertex.label = NA
+     , vertex.color = cbc_colorscale
+     , edge.arrow.size = 0.5)
+
+# Circle Invader Plot
+plot(simplify(colony5circleaggn_igraph)
+     , main = "(b) Circle Invader Assay"
+     , rescale = TRUE
+     , vertex.label = NA
+     , vertex.color = cac_colorscale
+     , edge.arrow.size = 0.5)
+
+# Tube Baseline Plot
+plot(simplify(colony5tubebaseline_igraph)
+     , main = "(c) Tube Baseline Assay"
+     , rescale = TRUE
+     , vertex.label = NA
+     , vertex.color = tbc_colorscale
+     , edge.arrow.size = 0.5)
+
+
+# Tube Invader Plot
+plot(simplify(colony5tubeaggnconnected_igraph)
+     , main = "(d) Tube Invader Assay"
+     , rescale = TRUE
+     , vertex.label = NA
+     , vertex.color = tac_colorscale
+     , edge.arrow.size = 0.5)
+
+mtext("Interaction Networks \n Colored by Closeness"
+      , cex = 2
+      , side = 3
+      , line = - 29
+      , outer = TRUE)
+
+
+
+plot(as.network(Colony5TubePreMatrix), main = "Tube Baseline Network")
+plot(as.network(Colony5CirclePreMatrix), main = "Circle Baseline Network")
+
 
 
 
