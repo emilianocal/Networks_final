@@ -32,7 +32,7 @@ library(circlize)
 library(snowboot)
 
 ## ----------------
-# CAVIAR dataset & calculations -----------------
+# CAVIAR dataset IMPORTATION & calculations -----------------
 # Load in the caviar dataset
 caviar <- read.csv("CAVIAR_FULL.csv", header = TRUE)
 # Turn it into a matrix
@@ -343,7 +343,7 @@ plot(caviar_igraph
 
 
 ## ----------------
-# LJ Dataset & calculations  ------------------
+# LJ Dataset IMPORTATION & calculations  ------------------
 ljedges <- read.csv("ljshrunkedges.csv", header = TRUE)
 # Increases the 0s so r doesn't freak out when dividing by 0
 ljm <- as.matrix(ljedges) + 1
@@ -479,7 +479,7 @@ cat("Diameter of this network:", lj_diameter, "\n")
 
 
 ## ----------------
-# Drosophila dataset & calculations --------------
+# Drosophila dataset IMPORTATION & calculations --------------
 
 # Load in the csv file
 dedges <- read.csv("drosophila_edgelist_shrunk.csv", header = TRUE)
@@ -552,7 +552,7 @@ legend("right",
 warnings()
 
 ## ----------------
-# PCA  -----
+# PCA -- NOT FOR THE FINAL  -----
 
 drosophilaloc <- cmdscale(dam)
 drosophilax <- -drosophilaloc[, 1]
@@ -689,7 +689,7 @@ dr_diameter <- diameter(dg, directed = TRUE)
 #                                               "SizeWidth.px", "SizeLeng.px", "Speed.Px.s", "Interpolated", "HeadX", "HeadY"))
 
 ## ----------------
-# DERIVED DATA -- Importing ------------------
+# DERIVED DATA -- dataset IMPORTATION ------------------
 
 # INVADER Tube
 Colony5TubeAggnNRMatrix <- read.csv("https://data.cyverse.org/dav-anon/iplant/home/gchism/NestArchAggn/Derived_Data/Matrices/Colony5TubeAggnNRMatrix.csv", row.names = 1, header = TRUE)
@@ -1111,13 +1111,6 @@ mtext("Interaction Networks \n Colored by Closeness"
       , side = 3
       , line = - 29
       , outer = TRUE)
-
-
-
-plot(as.network(Colony5TubePreMatrix), main = "Tube Baseline Network")
-plot(as.network(Colony5CirclePreMatrix), main = "Circle Baseline Network")
-
-
 
 
 # END ---------
